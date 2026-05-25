@@ -57,6 +57,11 @@ int main(int argc, char *argv[]) {
 	}
 
 	printf("Connection estabilished!\n");
+
+	if (getpeername(client_fd, (struct sockaddr*)&addr, &addrlen) == 0) {
+		printf("Connected to %s | port %d\n", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
+	}
+	
 	printf("Type your commands below:\n\n");
 
 	fd_set read_fds;
