@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
-	if ((client_fd = accept(server_fd, (struct sockaddr *)&addr, (socklen_t*)&addr)) < 0) {
+	if ((client_fd = accept(server_fd, (struct sockaddr *)&addr, (socklen_t*)&addrlen)) < 0) {
 		perror("Accept failed");
 		exit(EXIT_FAILURE);
 	}
