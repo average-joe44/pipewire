@@ -40,14 +40,14 @@ download <remote_file_name> <local_file_name>
 upload <local_file_name> <remote_file_name>
 ```
 - download
-  > remote_file_name = what you want to download (from target)
+  > remote_file_name = what file you want to download (from target)
   > 
   > local_file_name = what name you want to save it (your machine)
 
 - upload
   > local_file_name = what file you want to upload (your machine)
   >
-  > remote_file_name = what you want to save it (in target)
+  > remote_file_name = what name you want to save it (in target)
 
 ## NOTE
 This is again a PoC project you can't use this for real illegal activities.  
