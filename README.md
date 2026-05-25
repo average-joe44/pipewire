@@ -24,12 +24,12 @@ After all that, run it
 ```
 After a connection is received you should see a "**handler>>**" input in your terminal, then you can type
 ```
-ls
-cat
-echo
-cd
-pwd
-ifconfig
+handler>> ls
+handler>> cat
+handler>> echo
+handler>> cd
+handler>> pwd
+handler>> ifconfig
 ...etc
 ```
 Or you can download and upload a file
@@ -51,4 +51,4 @@ upload <local_file_name> <remote_file_name>
 
 ## NOTE
 This is again a PoC project you can't use this for real illegal activities.  
-Hope you like it:).
+Hope you like it :).
