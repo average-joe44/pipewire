@@ -4,9 +4,63 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
-#include <dirent.h>
 
 #define BUFFER 4096
+
+int download_file(int client_fd, const char *local_file_name, long remote_file_size) {
+	FILE *file = fopen(local_file_name, "wb");
+	if (file == NULL) {
+		printf("failed to make file\n");
+		return 0;
+	}
+
+	char file_buf[BUFFER];
+	int chunk = 0;
+	long total_recv = 0;
+
+	while (total_recv < remote_file_size) {
+		long remain = remote_file_size - total_recv;
+		int to_read = (remain < BUFFER) ? remain : BUFFER;
+
+		chunk = recv(client_fd, file_buf, to_read, 0);
+		if (chunk <= 0) {
+			printf("connection lost while transfering file\n");
+			break;
+		}
+		fwrite(file_buf, 1, chunk, file);
+		total_recv += chunk;
+	}
+	fclose(file);
+
+	return (total_recv == remote_file_size);
+}
+
+int upload_file(int client_fd, const char *local_file_name) {
+	FILE* file = fopen(local_file_name, "rb");
+	if (file == NULL) {
+		printf("file not found\n");
+		return 0;
+	}
+	fseek(file, 0, SEEK_END);
+	long filesize = ftell(file);
+	fseek(file, 0, SEEK_SET);
+
+	char file_buf[BUFFER];
+	int byte_read;
+	long total_sent = 0;
+
+	while ((byte_read = fread(file_buf, 1, BUFFER, file)) > 0) {
+		int sent = send(client_fd, file_buf, byte_read, 0);
+		if (sent <= 0) {
+			printf("connection lost while transfering file\n");
+			break;
+		}
+		total_sent += sent;
+	}
+	fclose(file);
+
+	return (total_sent == filesize);
+}
 
 int main(int argc, char *argv[]) {
 	if (argc != 2) {
@@ -59,9 +113,9 @@ int main(int argc, char *argv[]) {
 	printf("Connection estabilished!\n");
 
 	if (getpeername(client_fd, (struct sockaddr*)&addr, &addrlen) == 0) {
-		printf("Connected to %s | port %d\n", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
+		printf("Connected to %s  | port %d\n", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
 	}
-	
+
 	printf("Type your commands below:\n\n");
 
 	fd_set read_fds;
@@ -136,16 +190,11 @@ int main(int argc, char *argv[]) {
 				send(client_fd, remote_cmd, strlen(remote_cmd), 0);
 				usleep(100000);
 
-				char file_buf[BUFFER];
-				int byte_read;
-				long total = 0;
-
-				while ((byte_read = fread(file_buf, 1, BUFFER, file)) > 0) {
-					send(client_fd, file_buf, byte_read, 0);
-					total += byte_read;
+				if (upload_file(client_fd, filename1)) {
+					printf("uploaded %ld byte\n", filesize);
+				} else {
+					printf("uploaded %ld byte: file might be corrupted\n", filesize);
 				}
-				fclose(file);
-				printf("uploaded %ld byte\n", total);
 				print_prompt = 1;
 			}
 			else if (strcmp(cmd, "download") == 0 && strlen(filename2) > 0) {
@@ -179,42 +228,17 @@ int main(int argc, char *argv[]) {
 				}
 				printf("downloading %ld byte\n", remote_file_size);
 
-				FILE *file = fopen(filename2, "wb");
-				if (file == NULL) {
-					printf("failed to make file\n");
-					print_prompt = 1;
-					continue;
-				}
-
 				char pipe[350];
 				sprintf(pipe, "cat \"%s\"\n", filename1);
 				send(client_fd, pipe, strlen(pipe), 0);
 				usleep(100000);
 
-				char file_buf[BUFFER];
-				long total_recv = 0;
-
-				while (total_recv < remote_file_size) {
-					long remain = remote_file_size - total_recv;
-					int to_read = (remain < BUFFER) ? remain : BUFFER;
-
-					int chunk = recv(client_fd, file_buf, to_read, 0);
-					if (chunk <= 0) {
-						printf("connection lost while transfering binary\n");
-						print_prompt = 1;
-						break;
-					}
-					fwrite(file_buf, 1, chunk, file);
-					total_recv += chunk;
-				}
-				fclose(file);
-
-				if (total_recv == remote_file_size) {
+				if (download_file(client_fd, filename2, remote_file_size)) {
 					printf("downloaded\n");
 				} else {
 					printf("downloaded: file might be corrupted\n");
-					print_prompt = 1;
 				}
+				print_prompt = 1;
 			}
 			else {
 				send(client_fd, buffer, valread, 0);
