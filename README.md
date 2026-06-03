@@ -24,6 +24,11 @@ After all that, run it
 ```
 After a connection is received you should see a "**handler>>**" input in your terminal, then you can type
 ```
+Listening on port <port>
+Connection estabilished!
+Connected to 127.0.0.1 | port 9999
+Type your command below:
+
 handler>> ls
 handler>> cat
 handler>> echo
