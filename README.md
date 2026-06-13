@@ -22,7 +22,7 @@ After all that, run it
 ```
 ./handler <port>
 ```
-After a connection is received you should see a "**handler>>**" input in your terminal, then you can type
+After a connection is received you should see an indented input below **"Type your command below:"** input in your terminal, then you can type
 ```
 Listening on port <port>
 Connection estabilished!
