@@ -119,14 +119,7 @@ int main(int argc, char *argv[]) {
 	printf("Type your commands below:\n\n");
 
 	fd_set read_fds;
-	int print_prompt = 1;
 	while (1) {
-
-		if (print_prompt) {
-			printf("handler>> ");
-			fflush(stdout);
-			print_prompt = 0;
-		}
 
 		FD_ZERO(&read_fds);
 		FD_SET(STDIN_FILENO, &read_fds);
@@ -141,18 +134,13 @@ int main(int argc, char *argv[]) {
 				break;
 			}
 			buffer[valread] = '\0';
-			printf("\n%s\n", buffer);
+			printf("%s", buffer);
 			fflush(stdout);
-			print_prompt = 1;
+			
 		}
 		if (FD_ISSET(STDIN_FILENO, &read_fds)) {
 			int valread = read(STDIN_FILENO, buffer, BUFFER);
 			buffer[valread] = '\0';
-
-			if (valread <= 1 && (buffer[0] == '\n' || buffer[0] == '\r' || buffer[0] == '\r')) {
-				print_prompt = 1;
-				continue;
-			}
 
 			char cmd[20] = {0};
 			char filename1[256] = {0};
@@ -160,18 +148,13 @@ int main(int argc, char *argv[]) {
 
 			int parsed = sscanf(buffer, "%s %s %s", cmd, filename1, filename2);
 
-			if (parsed <= 0) {
-				print_prompt = 1;
-				continue;
-			}
-
 			if (strcmp(cmd, "upload") == 0 && strlen(filename2) > 0) {
 				printf("uploading\n");
 
 				FILE *file = fopen(filename1, "rb");
 				if (file == NULL) {
 					printf("file not found\n");
-					print_prompt = 1;
+					
 					continue;
 				}
 
@@ -181,7 +164,7 @@ int main(int argc, char *argv[]) {
 
 				if (filesize <= 0) {
 					printf("Can't chunk file bytes");
-					print_prompt = 1;
+					
 					continue;
 				}
 
@@ -195,7 +178,7 @@ int main(int argc, char *argv[]) {
 				} else {
 					printf("uploaded %ld byte: file might be corrupted\n", filesize);
 				}
-				print_prompt = 1;
+				
 			}
 			else if (strcmp(cmd, "download") == 0 && strlen(filename2) > 0) {
 
@@ -209,21 +192,21 @@ int main(int argc, char *argv[]) {
 				int byte_recv = recv(client_fd, size_buf, sizeof(size_buf) - 1, 0);
 				if (byte_recv <= 0) {
 					printf("connection lost when checking target file\n");
-					print_prompt = 1;
+					
 					continue;
 				}
 				size_buf[byte_recv] = '\0';
 
 				if (strstr(size_buf, "NOT_FOUND") != NULL) {
 					printf("file not found\n");
-					print_prompt = 1;
+					
 					continue;
 				}
 
 				remote_file_size = atol(size_buf);
 				if (remote_file_size <= 0) {
 					printf("file size is not valid (empty byte)\n");
-					print_prompt = 1;
+					
 					continue;
 				}
 				printf("downloading %ld byte\n", remote_file_size);
@@ -238,12 +221,10 @@ int main(int argc, char *argv[]) {
 				} else {
 					printf("downloaded: file might be corrupted\n");
 				}
-				print_prompt = 1;
 			}
 			else {
 				send(client_fd, buffer, valread, 0);
-				usleep(50000);
-				print_prompt = 1;
+				usleep(50000);	
 			}
 		}
 	}
