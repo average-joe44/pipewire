@@ -29,12 +29,11 @@ Connection estabilished!
 Connected to 127.0.0.1 | port 9999
 Type your command below:
 
-handler>> ls
-handler>> cat
-handler>> echo
-handler>> cd
-handler>> pwd
-handler>> ifconfig
+ls
+pwd
+whoami
+id
+ifconfig
 ...etc
 ```
 Or you can download and upload a file
